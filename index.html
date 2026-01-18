@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<head>
+<title>Personal Finance Tracker</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #1e293b; /* dark mode background */
+    margin: 0;
+    padding: 0;
+    color: #e2e8f0;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #0f172a; /* dark card background */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  h1 {
+    text-align: center;
+    color: #f8fafc;
+  }
+  /* AI Chat */
+  #chat-section {
+    margin-bottom: 40px;
+  }
+  #question-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  #question-input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+  #question-form button {
+    padding: 10px 20px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  #question-form button:hover {
+    background: #3730a3;
+  }
+  #answer-output {
+    min-height: 80px;
+    padding: 10px;
+    background: #334155;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    font-family: 'Arial', sans-serif;
+  }
+
+  /* Table Section */
+  #table-section {
+    margin-top: 40px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+  }
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid #475569;
+    text-align: left;
+  }
+  th {
+    background: #4f46e5;
+    color: white;
+    font-weight: bold;
+  }
+  tr:nth-child(even) {
+    background: #1e293b;
+  }
+  tr:nth-child(odd) {
+    background: #0f172a;
+  }
+      footer {
+        display: flex;               /* Arrange items horizontally */
+        justify-content: space-around; /* Even spacing between items */
+        align-items: center;         /* Vertically center items */
+        background-color: #333;
+        color: white;
+        padding: 15px 0;
+    }
+
+    footer a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    footer a:hover {
+        text-decoration: underline;
+    }
+  .btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 200px; /* Space between title and images */
+  margin-bottom: 10px;
+}
+
+.header-container h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  color: #fff; /* Or whatever matches your color scheme */
+}
+
+.header-icon {
+  width: 100px;  /* Adjust size as needed */
+  height: 100px;
+  object-fit: contain;
+}
+
+  .btn-delete { background: #ef4444; color: white; }
+  .btn-delete:hover { background: #b91c1c; }
+  .btn-add { background: #10b981; color: white; }
+  .btn-add:hover { background: #047857; }
+
+  /* Add Transaction Form */
+  #add-transaction-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  #add-transaction-form input, #add-transaction-form select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #e2e8f0;
+    flex: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header-container">
+  <img src="/static/Bills.png" alt="los bills" class="header-icon">
+  <h1 style="color: #cfff04; font-size:48px;"><u>WealthWatchers</u></h1>
+  <img src="/static/coins.png" alt="los coins" class="header-icon">
+  </div>
+
+  <h1 style="color: white">Your AI powered finance tool!</h1>
+
+  <!-- AI Chat Section -->
+  <div id="chat-section">
+    <form id="question-form">
+      <input id="question-input" type="text" placeholder="Ask about your transactions...">
+      <button type="submit">Ask</button>
+    </form>
+    <div id="answer-output">Your answer will appear here.</div>
+  </div>
+
+  <!-- Transaction Table Section -->
+  <div id="table-section">
+    <h2>Manage Transactions</h2>
+
+    <form id="add-transaction-form">
+      <input type="date" id="t-date" required>
+      <input type="number" step="0.01" placeholder="Amount" id="t-amount" required>
+      <input type="text" placeholder="Category" id="t-category" required>
+      <input type="text" placeholder="Description" id="t-description" required>
+      <input type="text" placeholder="Payment Method" id="t-method" required>
+      <button type="submit" class="btn btn-add">Add</button>
+    </form>
+
+    <table id="transactions-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Payment Method</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Transactions will load here -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+<p>2026 Lucas Thompson</p>
+<p><a href="/about">About this website</a></p>
+<p>WealthWatchers</p>
+</footer>
+
+<script>
+  // ----------------------------
+  // Transaction Table JS
+  // ----------------------------
+
+  async function loadTransactions() {
+    const tbody = document.querySelector("#transactions-table tbody");
+    tbody.innerHTML = "";
+    const res = await fetch("/transactions");
+    const data = await res.json();
+
+    data.forEach((t, idx) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${t.date}</td>
+        <td>$${t.amount.toFixed(2)}</td>
+        <td>${t.category}</td>
+        <td>${t.description}</td>
+        <td>${t.payment_method}</td>
+        <td><button class="btn btn-delete" data-idx="${idx}">Delete</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Attach delete events (overwrite previous handlers)
+    document.querySelectorAll(".btn-delete").forEach(btn => {
+      btn.onclick = async () => {
+        const idx = parseInt(btn.getAttribute("data-idx"));
+        await fetch("/delete_transaction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idx })
+        });
+        loadTransactions(); // Refresh table
+      };
+    });
+  }
+
+  // Add transaction (attach only once)
+  document.getElementById("add-transaction-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const data = {
+      date: document.getElementById("t-date").value,
+      amount: document.getElementById("t-amount").value,
+      category: document.getElementById("t-category").value,
+      description: document.getElementById("t-description").value,
+      payment_method: document.getElementById("t-method").value
+    };
+    await fetch("/add_transaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    loadTransactions();
+    e.target.reset();
+  });
+
+  // AI Chat functionality (keep your old working JS)
+  const form = document.getElementById("question-form");
+  const input = document.getElementById("question-input");
+  const output = document.getElementById("answer-output");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+
+    output.textContent = "⏳ Thinking...";
+    
+    try {
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+
+      const data = await response.json();
+      if (data.answer) {
+        const formatted = data.answer
+          .split("\n")
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .join("\n");
+        output.textContent = formatted;
+      } else {
+        output.textContent = "⚠️ No answer received.";
+      }
+
+      output.scrollTop = output.scrollHeight;
+    } catch (err) {
+      output.textContent = `❌ Error: ${err.message}`;
+    }
+
+    input.value = "";
+    input.focus();
+  });
+
+  // Initial table load
+  loadTransactions();
+</script>
+</body>
+</html>
